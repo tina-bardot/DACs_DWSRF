@@ -1,0 +1,69 @@
+################################################################################
+# Generating CBG-level maps for DACs in California
+# National Center for Environmental Economics
+# Latest update: 11/30/2023
+################################################################################
+
+################################################################################
+## Load packages: 
+################################################################################
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+  readr,
+  tidyverse,
+  sf, # vector data operations
+  raster, # raster data operations
+  exactextractr, # fast raster data extraction for polygons
+  maps, # to get county boundary data
+  data.table, # data wrangling
+  dplyr, # data wrangling
+  lubridate, # Date object handling
+  tmap, # for map creation
+  cowplot, # for bivariate mapping
+  rgdal, # required for cdlTools
+  stringr, # string manipulation
+  magrittr,
+  tidycensus,
+  mapview,
+  janitor,
+  patchwork #for combining plots
+)
+
+################################################################################
+## Set directories
+################################################################################
+
+#TB
+my_path <- "C:/Users/tbardot/OneDrive - Environmental Protection Agency (EPA)/Documents/EJ Water systems"
+
+setwd(paste0(my_path))
+getwd()
+
+################################################################################
+## Load Data
+################################################################################
+
+# Load census block group geography data
+
+ca_bg <- tigris::block_groups(state = "CA")
+
+# California block-group level data w/ DAC definitions
+
+ca_DAC_cbg <- readRDS("DACs/Data/ca_DAC_cbg.rds") %>%
+  st_as_sf() %>% # set as sf object
+  st_transform(st_crs(4326)) # reproject into WGS84
+
+################################################################################
+## Mapping
+################################################################################
+
+
+DACs_plot <- ggplot() + 
+  geom_sf(data = ca_bg, fill = scales::alpha("#969696", 0.20), color = NA) + 
+  geom_sf(data = ca_DAC_cbg, aes(fill = DAC_type, geometry = geometry), color = NA) +
+  scale_fill_brewer(name = "DAC types", palette = "Set2", 
+                    na.value = "#969696") +
+  theme_map()
+
+DACs_plot
